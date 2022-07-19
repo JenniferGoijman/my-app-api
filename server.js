@@ -1,29 +1,21 @@
 const express = require("express");
-const fileupload = require("express-fileupload");
 const cors = require("cors");
-const bodyParser = require('body-parser');
- 
+const { uploadFiles } = require('./upload-files');
+
 const app = express();
  
 app.use(cors());
-app.use(fileupload());
-app.use(express.static("files"));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(__dirname + '/public'));
  
-app.post("/upload", (req, res) => {
-  const newpath = __dirname + "/files/";
-  const file = req.files.file;
-  const filename = file.name;
- 
-  file.mv(`${newpath}${filename}`, (err) => {
-    res.setHeader('Content-Type', 'text/plain');
-    if (err) {
-      res.status(500).send({ message: "File upload failed", code: 200 });
+app.post("/upload", 
+  uploadFiles.single('file'), (req, res) => {
+    if (!req.file){
+      return res.send({ success: false });
+    } else {
+      return res.send({ success: true })
     }
-    res.status(200).send({ message: "File Uploaded", code: 200 });
-  });
-});
+  }
+);
  
 app.listen(3001, () => {
   console.log("Server running successfully on 3001");
